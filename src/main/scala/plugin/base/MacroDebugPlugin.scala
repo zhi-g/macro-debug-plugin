@@ -12,4 +12,6 @@ class MacroDebugPlugin(val global: Global) extends Plugin {
   override val name = "macro-plugin"
   override val description = "generates synthetic code for macro expansion debugging"
   override val components = List[PluginComponent](new MacroDebugComponent(this.global))
+
+
 }
