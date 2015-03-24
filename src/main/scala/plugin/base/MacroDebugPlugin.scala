@@ -7,7 +7,6 @@ import scala.tools.nsc.plugins.{PluginComponent, Plugin}
  * Created by zhivka on 17.02.15.
  */
 class MacroDebugPlugin(val global: Global) extends Plugin {
-  import global._
 
   override val name = "macro-plugin"
   override val description = "generates synthetic code for macro expansion debugging"
