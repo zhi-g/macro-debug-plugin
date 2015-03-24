@@ -39,7 +39,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
           override def traverse(tree: Tree): Unit = {
             tree.attachments.get[analyzer.MacroExpansionAttachment] match {
               case Some(a@analyzer.MacroExpansionAttachment(expandee: Tree, expanded: Tree)) =>
-                //println(tree + " is detected as macro extension" + showCode(tree))
                 val expansionString = showCode(expanded)
                 val posInFile = source.offsetToLine(tree.pos.start) + 1 //lines start at 0
               //need to append empty lines until the line of beginning the macro
@@ -60,8 +59,8 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
 
         val synSource = new BatchSourceFile(source.file.canonicalPath, code)
         setPositionsExpansions(expansionsDetected, synSource)
-        setPositionsTrees(tree, synSource)
 
+        setPositionsTrees(tree, synSource)
         synSource
 
       }
@@ -69,7 +68,7 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
       def setPositionsExpansions(expansions: List[MacroExpansion], synSource: BatchSourceFile): Unit = {
         for (mExpansion <- expansions) {
           setPositionsExpansions(mExpansion.expandee.children.map(a => MacroExpansion(a, mExpansion.originalLineInFile, a.pos.start - mExpansion.expandee.pos.start)), synSource)
-          mExpansion.expandee.setPos(Position.offset(synSource, synSource.lineToOffset(mExpansion.originalLineInFile * 100) + mExpansion.offInLine))
+          mExpansion.expandee.setPos(Position.offset(synSource, synSource.lineToOffset((mExpansion.originalLineInFile - 1) * 100) + mExpansion.offInLine)) //lines start at 0
 
         }
 
@@ -85,10 +84,10 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
 
       }
 
-      val sourceWithExpansions = appendExpansions(unit.body)
-      val sourceTerm = ru.typeOf[CompilationUnit].decl(ru.TermName("source")).asMethod
+      appendExpansions(unit.body)
+      /*val sourceTerm = ru.typeOf[CompilationUnit].decl(ru.TermName("source")).asMethod
       val instanceMirror = scala.reflect.runtime.currentMirror.reflect(unit)
-      instanceMirror.reflectField(sourceTerm).set(sourceWithExpansions)
+      instanceMirror.reflectField(sourceTerm).set(sourceWithExpansions)*/
 
 
     }
