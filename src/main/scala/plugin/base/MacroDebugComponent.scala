@@ -60,7 +60,7 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
         val synSource = new BatchSourceFile(source.file.canonicalPath, code)
         setPositionsExpansions(expansionsDetected, synSource)
 
-        setPositionsTrees(tree, synSource)
+        //setPositionsTrees(tree, synSource)
         synSource
 
       }
