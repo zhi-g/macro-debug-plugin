@@ -44,31 +44,29 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
 
         var linesInFile = source.calculateLineIndices(source.content).length
         var expansionsDetected = List[MacroExpansion]()
-        var expandedDetected = List[MacroExpansion]()
 
         new Traverser {
           override def traverse(tree: Tree): Unit = {
             tree.attachments.get[analyzer.MacroExpansionAttachment] match {
               case Some(a@analyzer.MacroExpansionAttachment(expandee: Tree, expanded: Tree)) =>
-                val expansionString = showCode(expanded)
+                //don't need to touch the expandee and expanded, just do operations on tree
+                val expansionString = showCode(tree)
                 val posInFile = source.offsetToLine(tree.pos.start)
                 val emptyLines = Array.fill((posInFile + 1) * assumedMacroLength - linesInFile + 1)('\n') //lines start at 0
                 code.appendAll(emptyLines)
                 code.append(expansionString)
                 linesInFile = (posInFile + 1) * assumedMacroLength + expansionString.count(x => x == '\u000A' || x == '\u000D')
-                expansionsDetected = MacroExpansion(expandee, posInFile, 0) :: expansionsDetected
-                expandedDetected = MacroExpansion(expanded, posInFile, 0) :: expandedDetected
-              case _ => // do nothing
+                expansionsDetected = MacroExpansion(tree, posInFile, 0) :: expansionsDetected
+
+              case _ =>
+                super.traverse(tree)
+
             }
-            super.traverse(tree)
           }
         }.traverse(tree)
 
         val synSource = new BatchSourceFile(source.file.canonicalPath, code)
         setPositionsToExpansions(expansionsDetected, synSource)
-        setPositionsToExpanded(expandedDetected, synSource)
-
-        //setPositionsTrees(tree, synSource)
 
       }
 
