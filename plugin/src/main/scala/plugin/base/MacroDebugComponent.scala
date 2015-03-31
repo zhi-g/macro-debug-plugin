@@ -34,7 +34,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
 
   override def newPhase(prev: Phase): StdPhase = new StdPhase(prev) {
     override def apply(unit: CompilationUnit): Unit = {
-
       def appendExpansions(tree: Tree) = {
         // see Global.newSourceFile
         val source = unit.source.asInstanceOf[BatchSourceFile]
@@ -67,13 +66,8 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
 
         val synSource = new BatchSourceFile(source.file.canonicalPath, code)
         setPositionsToExpansions(expansionsDetected, synSource)
-
       }
-
-
       appendExpansions(unit.body)
-
-
     }
   }
 
