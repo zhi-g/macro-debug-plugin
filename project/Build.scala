@@ -35,7 +35,6 @@ object Build extends Build {
   lazy val usePluginSettings = Seq(
     scalacOptions in Compile <++= (Keys.`package` in(plugin, Compile)) map { (jar: File) =>
       System.setProperty("sbt.paths.plugin.jar", jar.getAbsolutePath)
-      println("The path to the plugin is " + jar.getAbsolutePath())
       val addPlugin = "-Xplugin:" + jar.getAbsolutePath
       // Thanks Jason for this cool idea (taken from https://github.com/retronym/boxer)
       // add plugin timestamp to compiler options to trigger recompile of

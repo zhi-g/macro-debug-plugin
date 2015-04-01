@@ -8,8 +8,6 @@ object HelloWorld {
 
   def hello_impl(c: whitebox.Context)(): c.Expr[Unit] = {
     import c.universe._
-    reify {
-      println("Hello World!")
-    }
+    c.Expr( q""" println ("Hello World!") """)
   }
 }

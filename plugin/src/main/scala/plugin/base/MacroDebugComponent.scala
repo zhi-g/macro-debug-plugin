@@ -4,8 +4,6 @@ import scala.reflect.internal.util.BatchSourceFile
 import scala.tools.nsc.plugins.PluginComponent
 import scala.tools.nsc.{Global, Phase}
 
-//import scala.sprinter.printers.PrettyPrinters
-
 
 /**
  * Created by zhivka on 19.02.15.
@@ -55,7 +53,8 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
                 val emptyLines = Array.fill((posInFile + 1) * assumedMacroLength - linesInFile + 1)('\n') //lines start at 0
                 code.appendAll(emptyLines)
                 code.append(expansionString)
-                linesInFile = (posInFile + 1) * assumedMacroLength + expansionString.count(x => x == '\u000A' || x == '\u000D')
+                linesInFile = emptyLines.length + expansionString.count(x => x == '\u000A' || x == '\u000D')
+
                 expansionsDetected = MacroExpansion(tree, posInFile, 0) :: expansionsDetected
 
               case _ =>
@@ -82,10 +81,11 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
             MacroExpansion(a, mExpansion.originalLineInFile, 0)
           }
       }, synSource)
-      mExpansion.expandee.setPos(Position.offset(synSource, synSource.lineToOffset((mExpansion.originalLineInFile) * assumedMacroLength) + mExpansion.posInLine))
+      mExpansion.expandee.setPos(Position.offset(synSource, synSource.lineToOffset(mExpansion.originalLineInFile * assumedMacroLength) + mExpansion.posInLine))
     }
   }
 
+  //useless
   private def setPositionsTrees(t: Tree, source: BatchSourceFile): Unit = {
     if (t.pos != NoPosition) {
       t.setPos(Position.offset(source, t.pos.point))
