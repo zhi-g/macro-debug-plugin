@@ -6,7 +6,7 @@ import org.scalatest.FunSuite
 
 class ExpansionsSuite extends FunSuite {
 
-  def virtualizedPopen(body: => Unit): (Int, String) = {
+  def virtualizedOpen(body: => Unit): (Int, String) = {
     val outputStorage = new ByteArrayOutputStream()
     val outputStream = new PrintStream(outputStorage)
     case class SystemExitException(exitCode: Int) extends SecurityException
@@ -36,7 +36,7 @@ class ExpansionsSuite extends FunSuite {
     tempDir.mkdir()
     val output = List("-d", tempDir.getAbsolutePath)
     val options = cp ++ debugPlugin ++ output ++ sources
-    val (exitCode, stdout) = virtualizedPopen(scala.tools.nsc.Main.main(options.toArray))
+    val (exitCode, stdout) = virtualizedOpen(scala.tools.nsc.Main.main(options.toArray))
     if (exitCode != 0) fail("The compiler has exited with code " + exitCode + ":\n" + stdout)
 
   }

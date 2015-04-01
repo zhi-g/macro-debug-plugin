@@ -33,6 +33,7 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
   case class MacroExpansion(expandee: Tree, originalLineInFile: Int, posInLine: Int)
 
   override def newPhase(prev: Phase): StdPhase = new StdPhase(prev) {
+
     override def apply(unit: CompilationUnit): Unit = {
       def appendExpansions(tree: Tree) = {
         // see Global.newSourceFile
@@ -81,7 +82,7 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
             MacroExpansion(a, mExpansion.originalLineInFile, 0)
           }
       }, synSource)
-      mExpansion.expandee.setPos(Position.offset(synSource, synSource.lineToOffset((mExpansion.originalLineInFile + 1) * assumedMacroLength) + mExpansion.posInLine))
+      mExpansion.expandee.setPos(Position.offset(synSource, synSource.lineToOffset((mExpansion.originalLineInFile) * assumedMacroLength) + mExpansion.posInLine))
     }
   }
 

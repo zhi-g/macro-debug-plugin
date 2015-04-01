@@ -5,8 +5,6 @@ object Build extends Build {
   lazy val sharedSettings = Defaults.coreDefaultSettings ++ Seq(
     scalaVersion := "2.11.6",
     version := "2.1.0-SNAPSHOT",
-    resolvers += Resolver.sonatypeRepo("snapshots"),
-    resolvers += Resolver.sonatypeRepo("releases"),
     publishArtifact in Test := false,
     scalacOptions ++= Seq("-deprecation", "-feature"),
     parallelExecution in Test := false, // hello, reflection sync!!
@@ -57,9 +55,8 @@ object Build extends Build {
     libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _),
     libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
     libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-
     unmanagedSourceDirectories in Test <<= (scalaSource in Test) { (root: File) =>
-      val (m :: Nil, others) = root.listFiles.toList.partition(_.getName == "macros")
+      val (_ :: Nil, others) = root.listFiles.toList.partition(_.getName == "macros")
       System.setProperty("sbt.paths.tests.macros", root.listFiles.toList.filter(_.getName == "macros").head.getAbsolutePath)
       others
     },
