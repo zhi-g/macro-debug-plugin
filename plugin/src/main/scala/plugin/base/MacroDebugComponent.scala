@@ -87,19 +87,4 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
     }
   }
 
-  //useless
-  private def setPositionsTrees(t: Tree, source: BatchSourceFile): Unit = {
-    if (t.pos != NoPosition) {
-      t.setPos(Position.offset(source, t.pos.point))
-    } else {
-    }
-    for (c <- t.children) setPositionsTrees(c, source)
-  }
-
-  private def setPositionsToExpanded(expanded: List[MacroExpansion], synSource: BatchSourceFile): Unit = {
-    for (x <- expanded) {
-      x.expandee.setPos(Position.offset(synSource, synSource.lineToOffset(x.originalLineInFile * assumedMacroLength + 1)))
-    }
-  }
-
 }
