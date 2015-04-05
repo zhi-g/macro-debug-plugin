@@ -15,9 +15,9 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
   import scala.reflect.internal.util.Position
 
   override val runsAfter = List("typer")
-  override val description = "generates synthetic code for macro expansions"
+  override val description = "generates synthetic code and positions for macro expansion debugging"
 
-  val phaseName = "macro-debug"
+  val phaseName = "macro-debug-gen"
   /*
    * Positions of the generated macro code will be created from the original position
    * of the macro application. If the macro application is at line x, then the generated

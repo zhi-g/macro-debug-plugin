@@ -1,4 +1,4 @@
 <plugin>
-    <name>macro-plugin</name>
+    <name>macro-debug</name>
     <classname>plugin.base.MacroDebugPlugin</classname>
 </plugin>
