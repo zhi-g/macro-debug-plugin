@@ -25,9 +25,7 @@ object Build extends Build {
     sharedSettings: _*
     ) settings(
     resourceDirectory in Compile <<= baseDirectory(_ / "src" / "main" / "scala" / "resources"),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-library" % _),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
+    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _)
 
     )
 
@@ -49,8 +47,6 @@ object Build extends Build {
   ) settings (
     sharedSettings ++ usePluginSettings: _ *
     ) settings(
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-library" % _),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _),
     libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
     libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test",
     unmanagedSourceDirectories in Test <<= (scalaSource in Test) { (root: File) =>
