@@ -1,5 +1,7 @@
 import sbt._
 import sbt.Keys._
+import sbtassembly.Plugin.AssemblyKeys._
+import sbtassembly.Plugin._
 
 object Build extends Build {
   lazy val sharedSettings = Defaults.coreDefaultSettings ++ Seq(
@@ -22,11 +24,37 @@ object Build extends Build {
     id = "macros-plugin",
     base = file("plugin")
   ) settings (
-    sharedSettings: _*
+    sharedSettings ++ assemblySettings: _*
     ) settings(
     resourceDirectory in Compile <<= baseDirectory(_ / "src" / "main" / "scala" / "resources"),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _)
-
+    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
+    resolvers += Resolver.sonatypeRepo("snapshots"),
+    libraryDependencies += "org.scalameta" % "scalahost" % "0.1.0-SNAPSHOT" cross CrossVersion.full,
+    test in assembly := {},
+    mergeStrategy in assembly := {
+      case "scalac-plugin.xml" => MergeStrategy.first
+      case x =>
+        val oldStrategy = (mergeStrategy in assembly).value
+        oldStrategy(x)
+    },
+    logLevel in assembly := Level.Error,
+    jarName in assembly := "macro_debug" + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
+    assemblyOption in assembly ~= { _.copy(includeScala = false) },
+    Keys.`package` in Compile := {
+      val slimJar = (Keys.`package` in Compile).value
+      val fatJar = new File(crossTarget.value + "/" + (jarName in assembly).value)
+      val _ = assembly.value
+      IO.copy(List(fatJar -> slimJar), overwrite = true)
+      slimJar
+    },
+    packagedArtifact in Compile in packageBin := {
+      val temp = (packagedArtifact in Compile in packageBin).value
+      val (art, slimJar) = temp
+      val fatJar = new File(crossTarget.value + "/" + (jarName in assembly).value)
+      val _ = assembly.value
+      IO.copy(List(fatJar -> slimJar), overwrite = true)
+      (art, slimJar)
+    }
     )
 
   lazy val usePluginSettings = Seq(

@@ -3,6 +3,7 @@ package plugin.base
 import scala.reflect.internal.util.BatchSourceFile
 import scala.tools.nsc.plugins.PluginComponent
 import scala.tools.nsc.{Global, Phase}
+import scala.meta._
 
 
 /**
@@ -11,6 +12,7 @@ import scala.tools.nsc.{Global, Phase}
 class MacroDebugComponent(val global: Global) extends PluginComponent {
 
   import global._
+  implicit val c = Scalahost.mkGlobalContext(global)
 
   import scala.reflect.internal.util.Position
 
