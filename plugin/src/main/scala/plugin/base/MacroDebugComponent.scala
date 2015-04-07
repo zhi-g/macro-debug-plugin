@@ -3,6 +3,7 @@ package plugin.base
 import scala.reflect.internal.util.BatchSourceFile
 import scala.tools.nsc.plugins.PluginComponent
 import scala.tools.nsc.{Global, Phase}
+import scala.meta._
 
 
 /**
@@ -11,13 +12,14 @@ import scala.tools.nsc.{Global, Phase}
 class MacroDebugComponent(val global: Global) extends PluginComponent {
 
   import global._
+  implicit val c = Scalahost.mkGlobalContext(global)
 
   import scala.reflect.internal.util.Position
 
   override val runsAfter = List("typer")
-  override val description = "generates synthetic code for macro expansions"
+  override val description = "generates synthetic code and positions for macro expansion debugging"
 
-  val phaseName = "macro-debug"
+  val phaseName = "macro-debug-gen"
   /*
    * Positions of the generated macro code will be created from the original position
    * of the macro application. If the macro application is at line x, then the generated
@@ -82,21 +84,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
           }
       }, synSource)
       mExpansion.expandee.setPos(Position.offset(synSource, synSource.lineToOffset(mExpansion.originalLineInFile * assumedMacroLength) + mExpansion.posInLine))
-    }
-  }
-
-  //useless
-  private def setPositionsTrees(t: Tree, source: BatchSourceFile): Unit = {
-    if (t.pos != NoPosition) {
-      t.setPos(Position.offset(source, t.pos.point))
-    } else {
-    }
-    for (c <- t.children) setPositionsTrees(c, source)
-  }
-
-  private def setPositionsToExpanded(expanded: List[MacroExpansion], synSource: BatchSourceFile): Unit = {
-    for (x <- expanded) {
-      x.expandee.setPos(Position.offset(synSource, synSource.lineToOffset(x.originalLineInFile * assumedMacroLength + 1)))
     }
   }
 

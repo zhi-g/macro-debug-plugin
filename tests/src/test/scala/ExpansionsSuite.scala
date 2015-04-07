@@ -32,7 +32,7 @@ class ExpansionsSuite extends FunSuite {
     // val sources = testDir.listFiles().filter(_.getName.endsWith(".scala")).map(_.getAbsolutePath).toList
     val sources = List(testDir.getAbsolutePath)
     val cp = List("-cp", sys.props("sbt.paths.tests.classpath"))
-    val debugPlugin = List("-Xplugin:" + sys.props("sbt.paths.plugin.jar"), "-Xplugin-require:macro-plugin")
+    val debugPlugin = List("-Xplugin:" + sys.props("sbt.paths.plugin.jar"), "-Xplugin-require:macro-debug")
     val tempDir = File.createTempFile("temp", System.nanoTime.toString);
     tempDir.delete();
     tempDir.mkdir()
