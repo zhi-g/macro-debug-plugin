@@ -4,14 +4,16 @@ import java.security.Permission
 import com.sun.org.apache.bcel.internal.classfile._
 import com.sun.org.apache.bcel.internal.util.{ClassPath, SyntheticRepository}
 import org.scalatest.FunSuite
+import org.scalatest._
 
-class ExpansionsSuite extends FunSuite {
+class ExpansionsSuite extends FunSuite with Matchers {
 
+  //source :
   def virtualizedOpen(body: => Unit): (Int, String) = {
     val outputStorage = new ByteArrayOutputStream()
     val outputStream = new PrintStream(outputStorage)
     case class SystemExitException(exitCode: Int) extends SecurityException
-    val manager = System.getSecurityManager()
+    val manager = System.getSecurityManager
     System.setSecurityManager(new SecurityManager {
       override def checkPermission(permission: Permission): Unit = ()
 
@@ -33,63 +35,68 @@ class ExpansionsSuite extends FunSuite {
     val sources = List(testDir.getAbsolutePath)
     val cp = List("-cp", sys.props("sbt.paths.tests.classpath"))
     val debugPlugin = List("-Xplugin:" + sys.props("sbt.paths.plugin.jar"), "-Xplugin-require:macro-debug")
-    val tempDir = File.createTempFile("temp", System.nanoTime.toString);
-    tempDir.delete();
+    val tempDir = File.createTempFile("temp", System.nanoTime.toString)
+    tempDir.delete()
     tempDir.mkdir()
     val output = List("-d", tempDir.getAbsolutePath)
     val options = cp ++ debugPlugin ++ output ++ sources
     val (exitCode, stdout) = virtualizedOpen(scala.tools.nsc.Main.main(options.toArray))
     if (exitCode != 0) fail("The compiler has exited with code " + exitCode + ":\n" + stdout)
-    //tempDir.listFiles().filter(_.
-    // getName == "macros")(0).listFiles().filter(_.getName == "resources")(0).listFiles().filter(_.getName == testDir.getName).head
-    println(tempDir.getAbsolutePath)
     tempDir
   }
 
   val resourceDir = new File(System.getProperty("sbt.paths.tests.macros") + File.separatorChar + "resources")
   val testDirs = resourceDir.listFiles().filter(_.listFiles().nonEmpty).filter(!_.getName().endsWith("_disabled"))
 
-  /* testDirs.foreach(testDir => test(testDir.getName) {
-     val outDir = runExpansionTest(testDir)
-     outDir.listFiles().foreach {
-       f =>
-         val jc1: JavaClass = new ClassParser(new FileInputStream(f), f.getName).parse()
-         val m1 = jc1.getMethods
-         m1.foreach { meth =>
-           val ln1 = meth.getLineNumberTable
-         }
 
-     }
+  def openRunOutput(pack: String, claz: String, clazOut: String): JavaClass = {
+    val sourceImpl = testDirs.filter(_.getName == pack).head.listFiles().filter(_.getName == claz).head
+    val out = runExpansionTest(sourceImpl).listFiles().filter(_.getName == "macros").head.listFiles().filter(_.getName == "resources")
+      .head.listFiles().filter(_.getName == pack).head.listFiles()
 
-
-   })*/
-
-  def createJavaClass(): List[JavaClass] = {
-
-
-    Nil
+    new ClassParser(new FileInputStream(out.filter(_.getName == clazOut)
+      .head), out.filter(_.getName == clazOut).head.getName).parse()
   }
 
-  test("macroimpl/HelloWorld") {
-    val sourceImpl = testDirs.filter(_.getName == "macroimpl")
-      .head.listFiles().filter(_.getName == "HelloWorld.scala").head
-    val out = runExpansionTest(sourceImpl).listFiles().filter(_.getName == "macros")
-      .head.listFiles().filter(_.getName == "resources").head.listFiles().filter(_.getName == "macroimpl").head.listFiles()
+  def deleteAllTemps(): Unit = {
 
-    val jc1: JavaClass = new ClassParser(new FileInputStream(out.filter(_.getName == "HelloWorld$.class")
-      .head), out.filter(_.getName == "HelloWorld$.class").head.getName).parse()
-
-    assert(jc1.getMethods()(1).getLineNumberTable.toString === """LineNumber(0, 11), LineNumber(1, 1001), LineNumber(146, 11)""") //how to ignore PC numbers
   }
 
   test("helloworld/Test") {
-    val sourceImpl = testDirs.filter(_.getName == "helloworld").head.listFiles().filter(_.getName == "Test.scala").head
-    val out = runExpansionTest(sourceImpl).listFiles().filter(_.getName == "macros").head.listFiles().filter(_.getName == "resources").head.listFiles().filter(_.getName == "helloworld").head.listFiles()
+    val jc1 = openRunOutput("helloworld", "Test.scala", "Test$.class")
+    val methFoo: Method = jc1.getMethods.filter(m => m.getName == "foo")(0)
+    val lineNumberTable = methFoo.getLineNumberTable
 
-    val jc1: JavaClass = new ClassParser(new FileInputStream(out.filter(_.getName == "Test$.class")
-      .head), out.filter(_.getName == "Test$.class").head.getName).parse()
-    for (x <- jc1.getMethods) println(x)
-    assert(jc1.getMethods()(jc1.getMethods.length - 2).getLineNumberTable.toString === """LineNumber(0, 501)""")
+    lineNumberTable.toString should fullyMatch regex """LineNumber\(.+, 8\), LineNumber\(.+, 12\)"""
   }
 
+  test("helloworld/MultipleExtensionsInFile") {
+    val jc1 = openRunOutput("helloworld", "MultipleExpansionsInFile.scala", "MultipleExpansionsInFile$.class")
+    val methFoo = jc1.getMethods.filter(m => m.getName == "foo")(0)
+    val lineNumberTable = methFoo.getLineNumberTable //
+    lineNumberTable.toString.replaceAll("\n", "" ) should fullyMatch regex
+      """LineNumber\(.+, 7\), LineNumber\(.+, 17\), LineNumber\(.+, 8\), LineNumber\(.+, 19\), LineNumber\(.+, 9\), LineNumber\(.+, 21\)"""
+  }
+
+  test("helloworld/MultipleExpansionsInLine") {
+    val jc1 = openRunOutput("helloworld", "MultipleExpansionsInLine.scala", "MultipleExpansionsInLine$.class")
+    val methods = jc1.getMethods
+    val methFoo = methods.filter(m => m.getName == "fooOne")(0)
+    val lineNumberTable = methFoo.getLineNumberTable
+    lineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
+      """LineNumber\(.+, 7\), LineNumber\(.+, 20\), LineNumber\(.+, 7\), LineNumber\(.+, 22\), LineNumber\(.+, 7\), LineNumber\(.+, 24\), LineNumber\(.+, 7\)"""
+    val  methBar1 = methods.filter(m=> m.getName == "barOne")(0)
+    methBar1.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
+      """LineNumber\(.+, 11\), LineNumber\(.+, 26\)""" //This expansion has 8 lines
+    val methBar2 = methods.filter(m=> m.getName == "barTwo")(0)
+    methBar2.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
+      """LineNumber\(.+, 15\), LineNumber\(.+, 34\), LineNumber\(.+, 15\), LineNumber\(.+, 42\), LineNumber\(.+, 15\), LineNumber\(.+, 50\), LineNumber\(.+, 15\)"""
+  }
+
+  test("helloworld/RecursionExpansions") {
+    val jc1 = openRunOutput("helloworld", "RecursionExpansions.scala", "RecursionExpansions$.class")
+    val methRecursion = jc1.getMethods.filter(m=> m.getName == "recursion")(0)
+    methRecursion.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
+      """LineNumber\(.+, 7\), LineNumber\(.+, 34\), LineNumber\(.+, 15\), LineNumber\(.+, 42\), LineNumber\(.+, 15\), LineNumber\(.+, 50\), LineNumber\(.+, 15\)"""
+  }
 }

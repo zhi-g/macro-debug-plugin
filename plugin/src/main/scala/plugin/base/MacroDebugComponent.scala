@@ -21,11 +21,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
 
   val phaseName = "macro-debug-gen"
 
-  /**
-   * Positions of the generated macro code will be created from the original position
-   * of the macro application. If the macro application is at line x, then the generated
-   * code for that macro will start at position x*assumedMacroLength
-   */
   case class MacroExpansion(expandee: Tree, newPosition: Position, shift: Int)
 
   override def newPhase(prev: Phase): StdPhase = new StdPhase(prev) {
@@ -34,7 +29,7 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
       def appendExpansions(tree: Tree) = {
         // see Global.newSourceFile
         var syntheticSource = unit.source.asInstanceOf[BatchSourceFile]
-        
+
         new Traverser {
           override def traverse(tree: Tree): Unit = {
             tree.attachments.get[analyzer.MacroExpansionAttachment] match {
@@ -59,8 +54,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
               //setPositionsToSubnodes(MacroExpansion(tree, newPosition, shift), syntheticSource)
               case _ =>
                 super.traverse(tree)
-
-
             }
           }
         }.traverse(tree)
@@ -73,8 +66,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
   private def setPositionsToSubnodes(m: MacroExpansion, source: BatchSourceFile): Unit = {
     new Traverser {
       override def traverse(tree: Tree): Unit = {
-        // println("Position is " + tree.pos)
-
         tree.pos match {
           case p: RangePosition =>
             tree.setPos(new RangePosition(source, p.start + m.shift, p.point + m.shift, p.end + m.shift))

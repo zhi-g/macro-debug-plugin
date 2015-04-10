@@ -1,7 +1,10 @@
 package macros.resources.helloworld
 
-import macros.HelloWorld
+import macros.HelloWorld._
 
 object Test extends App {
-  HelloWorld.hello()
+
+  def foo() {
+    hello
+  }
 }

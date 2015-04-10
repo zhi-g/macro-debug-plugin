@@ -6,10 +6,10 @@ import scala.reflect.macros._
 object HelloWorld {
   def hello(): Unit = macro hello_impl
 
-  def hello_impl(c: whitebox.Context)(): c.Expr[Unit] = {
+  def hello_impl(c: whitebox.Context)(): c.Tree = {
     import c.universe._
-    reify {
+    q"""
       println("Hello World!")
-    }
+    """
   }
 }
