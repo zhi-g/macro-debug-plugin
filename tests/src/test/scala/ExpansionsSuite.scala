@@ -43,6 +43,7 @@ class ExpansionsSuite extends FunSuite with Matchers {
     val output = List("-d", tempDir.getAbsolutePath)
     val options = cp ++ debugPlugin ++ output ++ sources
     val (exitCode, stdout) = virtualizedOpen(scala.tools.nsc.Main.main(options.toArray))
+    //println("The output of the compiler is:\n" + stdout)
     if (exitCode != 0) fail("The compiler has exited with code " + exitCode + ":\n" + stdout)
     tempDir
   }
@@ -128,7 +129,8 @@ class ExpansionsSuite extends FunSuite with Matchers {
   test("helloworld/ComboExpansions") {
     val jc1 = openRunOutput("helloworld", "ComboExpansions.scala", "ComboExpansions$.class")
     val methFoo = jc1.getMethods.filter(_.getName == "foo").head
-    methFoo.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex "hello"
+    methFoo.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
+      """LineNumber\(.+, 11\), LineNumber\(.+, 12\), LineNumber\(.+, 16\), LineNumber\(.+, 17\), LineNumber\(.+, 19\), LineNumber\(.+, 23\), LineNumber\(.+, 40\), LineNumber\(.+, 23\), LineNumber\(.+, 24\)"""
   }
 
 
