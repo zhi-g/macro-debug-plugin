@@ -42,20 +42,15 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
                 val nextOffset = syntheticSource.content.length + 1
                 val shift = nextOffset - tree.pos.start
                 syntheticSource = new BatchSourceFile(syntheticSource.file.canonicalPath, new String(syntheticSource.content) + "\n" + expansionString)
-                // println("The exp string is " + expansionString)
                 val metaTree = expansionString.replace("<unapply-selector>", "a").parse[Term]
-                //println("R is " + showRaw(tree))
-                //println("M is " + metaTree.show[Raw])
 
                 val newPosition = if (tree.pos.isRange) {
                   new RangePosition(syntheticSource, tree.pos.start + shift, tree.pos.point + shift, tree.pos.end + shift)
                 } else {
                   new OffsetPosition(syntheticSource, tree.pos.point + shift)
                 }
-                println("Start mapping positions")
+                //println("Start mapping positions")
                 mapPositions(tree, metaTree, newPosition)
-              //tree.setPos(newPosition)
-              //setPositionsToSubnodes(MacroExpansion(tree, newPosition, shift), syntheticSource)
               case _ =>
                 super.traverse(tree)
             }
@@ -71,9 +66,8 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
             case (Apply(t1, t11), ITerm.Apply(t2, t21)) =>
               mapPositions(t1, t2, newPosition)
               t11.zip(t21).map(x => mapPositions(x._1, x._2, newPosition))
-            case (Select(t1, _), ITerm.Select(t2, t21)) =>
+            case (Select(t1, _), ITerm.Select(t2, _)) =>
               mapPositions(t1, t2, newPosition)
-
             case (Block(t1, t11), ITerm.Block(t2)) =>
               (t1 ::: t11 :: Nil).zip(t2).map(x => mapPositions(x._1, x._2, newPosition))
             case (TypeApply(t1, t11), ITerm.ApplyType(t2, t21)) =>
@@ -123,24 +117,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
       }
       appendExpansions(unit.body)
     }
-  }
-
-
-  //doesn't work
-  private def setPositionsToSubnodes(m: MacroExpansion, source: BatchSourceFile): Unit = {
-    new Traverser {
-      override def traverse(tree: Tree): Unit = {
-        tree.pos match {
-          case p: RangePosition =>
-            tree.setPos(new RangePosition(source, p.start + m.shift, p.point + m.shift, p.end + m.shift))
-          case p: OffsetPosition =>
-            tree.setPos(new OffsetPosition(source, p.point + m.shift))
-          case _ =>
-            tree.setPos(new OffsetPosition(source, m.newPosition.point))
-        }
-        super.traverse(tree)
-      }
-    }.traverse(m.expandee)
   }
 
 }
