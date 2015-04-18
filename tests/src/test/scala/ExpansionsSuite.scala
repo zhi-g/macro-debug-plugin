@@ -70,7 +70,7 @@ class ExpansionsSuite extends FunSuite with Matchers {
     val methFoo: Method = jc1.getMethods.filter(m => m.getName == "foo")(0)
     val lineNumberTable = methFoo.getLineNumberTable
 
-    lineNumberTable.toString should fullyMatch regex """LineNumber\(.+, 8\), LineNumber\(.+, 12\)"""
+    lineNumberTable.toString should fullyMatch regex """LineNumber\(.+, 12\)"""
   }
 
   test("helloworld/MultipleExtensionsInFile") {
@@ -78,7 +78,7 @@ class ExpansionsSuite extends FunSuite with Matchers {
     val methFoo = jc1.getMethods.filter(m => m.getName == "foo")(0)
     val lineNumberTable = methFoo.getLineNumberTable //
     lineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
-      """LineNumber\(.+, 7\), LineNumber\(.+, 17\), LineNumber\(.+, 8\), LineNumber\(.+, 19\), LineNumber\(.+, 9\), LineNumber\(.+, 21\)"""
+      """LineNumber\(.+, 17\), LineNumber\(.+, 19\), LineNumber\(.+, 21\)"""
   }
 
   test("helloworld/MultipleExpansionsInLine") {
@@ -87,7 +87,8 @@ class ExpansionsSuite extends FunSuite with Matchers {
     val methFoo = methods.filter(m => m.getName == "fooOne")(0)
     val lineNumberTable = methFoo.getLineNumberTable
     lineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
-      """LineNumber\(.+, 7\), LineNumber\(.+, 20\), LineNumber\(.+, 7\), LineNumber\(.+, 22\), LineNumber\(.+, 7\), LineNumber\(.+, 24\), LineNumber\(.+, 7\)"""
+      //"LineNumber(0, 7), LineNumber(7, 20), LineNumber(12, 22), LineNumber(17, 24), LineNumber(22, 7)
+      """LineNumber\(.+, 7\), LineNumber\(.+, 20\), LineNumber\(.+, 22\), LineNumber\(.+, 24\), LineNumber\(.+, 7\)"""
     val methBar1 = methods.filter(m => m.getName == "barOne")(0)
     methBar1.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
       """LineNumber\(.+, 11\), LineNumber\(.+, 26\)""" //This expansion has 8 lines
@@ -103,7 +104,7 @@ class ExpansionsSuite extends FunSuite with Matchers {
     val methFoo = jc1.getMethods.filter(m => m.getName == "foo")(0)
     val lineNumberTable = methFoo.getLineNumberTable //
     lineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
-      """LineNumber\(.+, 8\), LineNumber\(.+, 24\), LineNumber\(.+, 9\), LineNumber\(.+, 26\), LineNumber\(.+, 10\), LineNumber\(.+, 28\)"""
+      """LineNumber\(.+, 24\), LineNumber\(.+, 26\), LineNumber\(.+, 28\)"""
 
     val methFooBar = methods.filter(m => m.getName == "foobar")(0)
     methFooBar.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
