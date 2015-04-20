@@ -1,7 +1,5 @@
 package macros
 
-import scala.collection.mutable.Stack
-import scala.collection.mutable.ListBuffer
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 

@@ -8,10 +8,6 @@ import scala.meta._
 import scala.meta.internal.ast.{Term => ITerm}
 import scala.meta.internal.{ast => mTrees}
 
-
-/**
- * Created by zhivka on 19.02.15.
- */
 class MacroDebugComponent(val global: Global) extends PluginComponent {
 
   import global._
@@ -49,7 +45,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
                 } else {
                   new OffsetPosition(syntheticSource, tree.pos.point + shift)
                 }
-                //println("Start mapping positions")
                 mapPositions(tree, metaTree, newPosition)
               case _ =>
                 super.traverse(tree)
@@ -73,10 +68,8 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
             case (TypeApply(t1, t11), ITerm.ApplyType(t2, t21)) =>
               mapPositions(t1, t2, newPosition)
               t11.zip(t21).map(x => mapPositions(x._1, x._2, newPosition))
-
             case (ClassDef(_, _, _, impl), mTrees.Defn.Class(_, _, _, _, tmpl)) =>
               mapPositions(impl, tmpl, newPosition)
-
             case (Typed(expr, tpt), ITerm.Ascribe(expr1, tpt1)) =>
               mapPositions(expr, expr1, newPosition)
               mapPositions(tpt, tpt1, newPosition)
@@ -104,7 +97,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
               vparams.zip(mparams).map { x =>
                 x._1.zip(x._2).map(y => mapPositions(y._1, y._2, newPosition))
               }
-
             case (Ident(name1), ITerm.Name(name2)) =>
             case (Literal(_), _) =>
             case (TypeTree(), _) =>

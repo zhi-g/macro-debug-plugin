@@ -1,4 +1,4 @@
-package macros.resources.helloworld
+package macros.resources.multipleexpansions
 
 import macros.Macros
 import macros.Macros._

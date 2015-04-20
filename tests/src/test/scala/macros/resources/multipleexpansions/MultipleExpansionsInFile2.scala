@@ -1,4 +1,4 @@
-package macros.resources.helloworld
+package macros.resources.multipleexpansions
 
 import macros.HelloWorld._
 import macros.Macros
@@ -10,7 +10,7 @@ object MultipleExpansionsInFile2 extends App {
     hello()
   }
 
-  def foobar(): String ={
+  def foobar(): String = {
     val w1 = Macros.bar("hello")
     val w2 = Macros.bar("world")
     w1 + w2 + Macros.bar("plop")
