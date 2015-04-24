@@ -1,6 +1,7 @@
 package plugin.base
 
 import scala.meta.ui.Raw
+import scala.reflect.internal.prettyprint.Printers
 import scala.reflect.internal.util.{OffsetPosition, RangePosition, BatchSourceFile}
 import scala.tools.nsc.plugins.PluginComponent
 import scala.tools.nsc.{Global, Phase}
@@ -8,7 +9,7 @@ import scala.meta._
 import scala.meta.internal.ast.{Term => ITerm}
 import scala.meta.internal.{ast => mTrees}
 
-class MacroDebugComponent(val global: Global) extends PluginComponent {
+class MacroDebugComponent(val global: Global) extends PluginComponent with Printers {
 
   import global._
 
@@ -29,6 +30,7 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
       def appendExpansions(tree: Tree) = {
         // see Global.newSourceFile
         var syntheticSource = unit.source.asInstanceOf[BatchSourceFile]
+        println(s"Compiling " + syntheticSource.file.canonicalPath)
 
         new Traverser {
           override def traverse(tree: Tree): Unit = {
@@ -37,11 +39,18 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
                 val expansionString = showCode(tree)
                 val nextOffset = syntheticSource.content.length + 1
                 val shift = nextOffset - tree.pos.start
-                syntheticSource = new BatchSourceFile(syntheticSource.file.canonicalPath, new String(syntheticSource.content) + "\n" + expansionString)
-                val metaTree = expansionString.replace("<unapply-selector>", "a").parse[Term]
+
+                //println(s"raw code is " + showRaw(tree))
+                println(s"expansion string in " + expansionString)
+                //println("tree" + showRaw(tree))
+                syntheticSource = new BatchSourceFile(syntheticSource.file.canonicalPath,
+                  new String(syntheticSource.content) + "\n" + expansionString)
+
+                val metaTree = expansionString.replace("<unapply-selector>", "a").parse[Stat]
 
                 val newPosition = if (tree.pos.isRange) {
-                  new RangePosition(syntheticSource, tree.pos.start + shift, tree.pos.point + shift, tree.pos.end + shift)
+                  new RangePosition(syntheticSource, tree.pos.start + shift, tree.pos.point + shift,
+                    tree.pos.end + shift)
                 } else {
                   new OffsetPosition(syntheticSource, tree.pos.point + shift)
                 }
@@ -53,8 +62,12 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
         }.traverse(tree)
 
         def mapPositions(reflectTree: Tree, metaTree: meta.Tree, newPosition: Position): Unit = {
-          val pos = if (newPosition.isRange) new RangePosition(syntheticSource, newPosition.start + metaTree.origin.start, newPosition.point + metaTree.origin.start, newPosition.end + metaTree.origin.start)
-          else new OffsetPosition(syntheticSource, newPosition.point + metaTree.origin.start)
+          val pos = if (newPosition.isRange) {
+            new RangePosition(syntheticSource, newPosition.start + metaTree.origin.start,
+              newPosition.point + metaTree.origin.start, newPosition.end + metaTree.origin.start)
+          } else {
+            new OffsetPosition(syntheticSource, newPosition.point + metaTree.origin.start)
+          }
           reflectTree.setPos(pos)
 
           (reflectTree, metaTree) match {
@@ -74,7 +87,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
               mapPositions(expr, expr1, newPosition)
               mapPositions(tpt, tpt1, newPosition)
             case (ValDef(mods, name, tpt, rhs), mTrees.Defn.Val(mmods, mname, mtpt, mrhs)) =>
-              // mapPositions(tpt, mtpt, newPosition)
               mtpt match {
                 case Some(t) => mapPositions(tpt, t, newPosition)
                 case None =>
@@ -87,7 +99,8 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
                 case Some(s) => rbody.zip(s).map(x => mapPositions(x._1, x._2, newPosition))
                 case _ =>
               }
-            case (DefDef(mods, name, tparams, vparams, tpt, rhs), mTrees.Defn.Def(mmods, mname, mtparams, mparams, decltype, mbody)) =>
+            case (DefDef(mods, name, tparams, vparams, tpt, rhs), mTrees.Defn.Def(mmods, mname, mtparams, mparams,
+            decltype, mbody)) =>
               decltype match {
                 case Some(t) => mapPositions(tpt, t, newPosition)
                 case None =>
@@ -110,5 +123,6 @@ class MacroDebugComponent(val global: Global) extends PluginComponent {
       appendExpansions(unit.body)
     }
   }
-
 }
+
+

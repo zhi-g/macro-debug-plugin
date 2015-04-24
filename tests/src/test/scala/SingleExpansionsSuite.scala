@@ -49,13 +49,13 @@ class SingleExpansionsSuite extends ExpansionsSuite {
   test("Maximum") {
     val jc1 = openRunOutput("singleexpansion", "Maximum.scala", "Maximum$.class")
     val methFoo = jc1.getMethods.filter(m => m.getName == "foo").head
-    methFoo.getLineNumberTable.toString should fullyMatch regex
-      """LineNumber\(.+, 7\), LineNumber\(.+, 12\)"""
+    methFoo.getLineNumberTable.toString.replaceAll("\n", "") should fullyMatch regex
+      """LineNumber\(.+, 7\), LineNumber\(.+, 8\), LineNumber\(.+, 13\), LineNumber\(.+, 14\), LineNumber\(.+, 18\)"""
 
     /* LineNumberTable:
-        line 7: 0 
-        line 8: 28
-        line 13: 38
+        line 7: 0  - create val
+        line 8: 28 - load val
+        line 13: 38 - macro, why not 12?
         line 14: 40
         line 18: 53
      */

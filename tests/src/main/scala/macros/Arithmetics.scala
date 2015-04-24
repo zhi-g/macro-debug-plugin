@@ -16,8 +16,7 @@ object Arithmetics {
 
   def maximum_impl(c: Context)(a: c.Tree): c.Tree = {
     import c.universe._
-    q"""
-        var max = $a.head
+    q"""var max = $a.head
         $a.foreach { x =>
           if ( x>max) max = x
         }
