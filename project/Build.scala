@@ -65,7 +65,7 @@ object Build extends Build {
       // add plugin timestamp to compiler options to trigger recompile of
       // main after editing the plugin. (Otherwise a 'clean' is needed.)
       val dummy = "-Jdummy=" + jar.lastModified
-      Seq(addPlugin, dummy)
+      Seq()
     }
   )
 

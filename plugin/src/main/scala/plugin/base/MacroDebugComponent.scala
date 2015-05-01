@@ -41,7 +41,8 @@ class MacroDebugComponent(val global: Global) extends PluginComponent with Print
                 val shift = nextOffset - tree.pos.start
 
                 //println(s"raw code is " + showRaw(tree))
-                println(s"expansion string in " + expansionString)
+                println(s"global expansion string is " + global.showCode(tree)) 
+                println(s"expansion string is " + expansionString)
                 //println("tree" + showRaw(tree))
                 syntheticSource = new BatchSourceFile(syntheticSource.file.canonicalPath,
                   new String(syntheticSource.content) + "\n" + expansionString)
