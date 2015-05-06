@@ -41,7 +41,7 @@ class MacroDebugComponent(val global: Global) extends PluginComponent with Print
                 val shift = nextOffset - tree.pos.start
 
                 //println(s"raw code is " + showRaw(tree))
-                println(s"global expansion string is " + global.showCode(tree)) 
+                println(s"global expansion string is " + global.showCode(tree))
                 println(s"expansion string is " + expansionString)
                 //println("tree" + showRaw(tree))
                 syntheticSource = new BatchSourceFile(syntheticSource.file.canonicalPath,
@@ -64,10 +64,10 @@ class MacroDebugComponent(val global: Global) extends PluginComponent with Print
 
         def mapPositions(reflectTree: Tree, metaTree: meta.Tree, newPosition: Position): Unit = {
           val pos = if (newPosition.isRange) {
-            new RangePosition(syntheticSource, newPosition.start + metaTree.origin.start,
-              newPosition.point + metaTree.origin.start, newPosition.end + metaTree.origin.start)
+            new RangePosition(syntheticSource, newPosition.start + metaTree.origin.start.offset,
+              newPosition.point + metaTree.origin.start.offset, newPosition.end + metaTree.origin.start.offset)
           } else {
-            new OffsetPosition(syntheticSource, newPosition.point + metaTree.origin.start)
+            new OffsetPosition(syntheticSource, newPosition.point + metaTree.origin.start.offset)
           }
           reflectTree.setPos(pos)
 

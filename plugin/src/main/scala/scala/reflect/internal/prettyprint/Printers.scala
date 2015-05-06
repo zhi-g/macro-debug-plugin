@@ -263,7 +263,7 @@ trait Printers {
           printPosition(tree)
           printAnnotations(vd)
           print(symName(tree, name));
-          printOpt(": ", tp);
+          printRequired(": ", tp);
           printOpt(" = ", rhs)
         case TypeDef(mods, name, tparams, rhs) =>
           printPosition(tree)
@@ -295,6 +295,11 @@ trait Printers {
       if (tree.nonEmpty) {
         print(prefix, tree)
       }
+    }
+
+    def printRequired(prefix: String, tree: Tree) = {
+      print(prefix)
+      print(tree)
     }
 
     def printModifiers(tree: Tree, mods: Modifiers): Unit = {
@@ -496,7 +501,7 @@ trait Printers {
           printModifiers(tree, mods)
           print("object " + symName(tree, name), " extends ", impl)
         case vd@ValDef(mods, name, tp, rhs) =>
-          printValDef(vd, symName(tree, name))(printOpt(": ", tp)) {
+          printValDef(vd, symName(tree, name))(printRequired(": ", tp)) {
             if (!mods.isDeferred) print(" = ", if (rhs.isEmpty) "_" else rhs)
           }
         case dd@DefDef(mods, name, tparams, vparamss, tp, rhs) =>
@@ -795,6 +800,14 @@ trait Printers {
       if (!emptyTree(tree)) super.printOpt(prefix, tree)
     }
 
+    override def printRequired(prefix: String, tree: Tree) = {
+      super.print(prefix)
+      tree match {
+        case tt: TypeTree => print(tt.tpe.toString)
+        case _ => print(tree)
+      }
+    }
+
     override def printColumn(ts: List[Tree], start: String, sep: String, end: String) = {
       super.printColumn(ts.filter(!syntheticToRemove(_)), start, sep, end)
     }
@@ -842,7 +855,7 @@ trait Printers {
             print(if (mods.isMutable) "var " else "val ");
           }
           print(printedName(name), blankForName(name));
-          printOpt(": ", tp);
+          printRequired(": ", tp);
           printOpt(" = ", rhs)
         case TypeDef(_, name, tparams, rhs) =>
           printPosition(tree)
